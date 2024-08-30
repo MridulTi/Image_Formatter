@@ -54,11 +54,12 @@ def convertToPdf(data):
     return send_file(pdf_filename, as_attachment=True, download_name="converted_file.pdf")
 
 def editPDF(data, pages):
-    
+    print(data,pages)
     # Initialize PdfReader and PdfWriter
     infile = PdfReader(data[0])  # 'rb' mode is not necessary in PyPDF2
     output = PdfWriter()
 
+    pages = [int(p) - 1 for p in pages]
     # Add selected pages to the output PDF
     for i in pages:
         try:
@@ -97,12 +98,14 @@ def file_fetch():
     if file_type =='pdf':
         return convertToPdf(data)
     if file_type=='annotate':
-        pages=json_data['pages_to_keep']
-        if ',' in pages:
-            pages = pages.split(',')
+        pages = request.form.getlist('pages_to_keep[]')
+        print(pages)
 
-        else:
-            pages = [pages]
+        # Handle both cases: when 'pages' is a list of strings or a single string
+        if len(pages) == 1 and ',' in pages[0]:
+            pages = pages[0].split(',')
+
+        # Convert the pages to integers
         pages = [int(page) for page in pages]
         return editPDF(data,pages)
 
